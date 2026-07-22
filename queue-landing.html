@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queue — Tell me what to automate. I build it. You pay when it ships.</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#1B1A17;
+    --paper:#F1ECE1;
+    --paper-dim:#E6DFCF;
+    --slate:#6B6558;
+    --slate-light:#8C8676;
+    --signal:#2F6F5E;
+    --signal-bright:#3E9179;
+    --rust:#C4622D;
+    --line: rgba(27,26,23,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);}
+  body{
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace;}
+  a{color:inherit;}
+  ::selection{background:var(--signal);color:var(--paper);}
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* NAV */
+  nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:28px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:16px;
+    letter-spacing:0.02em;
+  }
+  .logo .dot{color:var(--signal);}
+  .nav-status{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--slate);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .pulse{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--signal-bright);
+    box-shadow:0 0 0 rgba(62,145,121,0.6);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(62,145,121,0.45);}
+    70%{box-shadow:0 0 0 6px rgba(62,145,121,0);}
+    100%{box-shadow:0 0 0 0 rgba(62,145,121,0);}
+  }
+
+  /* HERO */
+  .hero{
+    padding:56px 0 40px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color:var(--rust);
+    margin-bottom:18px;
+  }
+  h1{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:clamp(30px, 5.2vw, 46px);
+    line-height:1.12;
+    font-weight:600;
+    margin:0 0 20px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:17px;
+    color:var(--slate);
+    max-width:480px;
+    margin:0 0 32px;
+  }
+
+  /* TERMINAL */
+  .terminal{
+    background:var(--ink);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 24px 60px -20px rgba(27,26,23,0.4);
+    margin-bottom:16px;
+  }
+  .term-bar{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:12px 16px;
+    background:#252420;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .term-dot{width:9px;height:9px;border-radius:50%;}
+  .term-bar .term-title{
+    margin-left:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#8C8676;
+  }
+  .term-body{
+    padding:22px 20px 26px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:#D9D3C4;
+    min-height:220px;
+  }
+  .term-line{margin:0 0 9px; white-space:pre-wrap; word-break:break-word;}
+  .term-prompt{color:var(--signal-bright);}
+  .term-comment{color:#6B6558;}
+  .term-ok{color:var(--signal-bright);}
+  .cursor{
+    display:inline-block;
+    width:7px;height:14px;
+    background:#D9D3C4;
+    vertical-align:middle;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{50%{opacity:0;}}
+
+  .hero-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--slate-light);
+  }
+
+  /* SECTIONS */
+  section{padding:48px 0;border-top:1px solid var(--line);}
+  .section-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:var(--slate);
+    margin-bottom:24px;
+  }
+
+  .steps{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+  }
+  .step{
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:18px;
+    padding:20px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .step:last-child{border-bottom:none;}
+  .step-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    color:var(--rust);
+  }
+  .step h3{
+    margin:0 0 6px;
+    font-size:17px;
+    font-weight:600;
+  }
+  .step p{
+    margin:0;
+    color:var(--slate);
+    font-size:14.5px;
+    max-width:460px;
+  }
+
+  .examples{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:560px){.examples{grid-template-columns:1fr;}}
+  .ex-card{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px 18px;
+    background:var(--paper-dim);
+  }
+  .ex-card .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--signal);
+    margin-bottom:8px;
+    display:block;
+  }
+  .ex-card p{margin:0;font-size:14px;color:var(--ink);}
+
+  .pricing-line{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .pricing-line .big{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    font-weight:600;
+  }
+  .pricing-line .desc{color:var(--slate); font-size:14px;}
+
+  /* WAITLIST */
+  .waitlist-card{
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--ink);
+    color:var(--paper);
+    padding:30px 26px;
+  }
+  .waitlist-card h2{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:22px;
+    margin:0 0 8px;
+    font-weight:600;
+  }
+  .waitlist-card .desc{
+    color:#B8B2A2;
+    font-size:14.5px;
+    margin:0 0 22px;
+  }
+  form{display:flex; flex-direction:column; gap:12px;}
+  .row{display:flex; gap:10px;}
+  @media (max-width:520px){.row{flex-direction:column;}}
+  input, textarea{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding:12px 14px;
+    border-radius:6px;
+    border:1px solid rgba(255,255,255,0.14);
+    background:rgba(255,255,255,0.04);
+    color:var(--paper);
+    outline:none;
+    width:100%;
+  }
+  input::placeholder, textarea::placeholder{color:#7B7566;}
+  input:focus, textarea:focus{
+    border-color:var(--signal-bright);
+    background:rgba(255,255,255,0.06);
+  }
+  textarea{resize:vertical; min-height:70px;}
+  button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    font-weight:600;
+    padding:13px 18px;
+    border-radius:6px;
+    border:none;
+    background:var(--signal-bright);
+    color:var(--ink);
+    cursor:pointer;
+    transition:background 0.15s ease, transform 0.1s ease;
+  }
+  button:hover{background:#4CA98C;}
+  button:active{transform:scale(0.98);}
+  button:disabled{opacity:0.6; cursor:default;}
+  button:focus-visible, input:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--rust);
+    outline-offset:2px;
+  }
+
+  .form-note{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:#7B7566;
+    margin-top:2px;
+  }
+  .success{
+    display:none;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    color:var(--signal-bright);
+    padding:14px 0 2px;
+  }
+  .success.show{display:block;}
+
+  .count-line{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--slate);
+    margin-top:14px;
+  }
+
+  footer{
+    padding:32px 0 48px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--slate-light);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .pulse, .cursor{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <nav>
+    <div class="logo">queue<span class="dot">.</span>build</div>
+    <div class="nav-status"><span class="pulse"></span>accepting requests</div>
+  </nav>
+
+  <div class="hero">
+    <div class="eyebrow">01 — how this works</div>
+    <h1>Tell me what to automate.<br>I build it with AI.<br>You pay when it ships.</h1>
+    <p class="sub">No retainers, no discovery calls, no six-week sprints. Describe the manual work you want gone — I build the automation and send an invoice once it's running.</p>
+
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="term-dot" style="background:#C4622D"></div>
+        <div class="term-dot" style="background:#D9A441"></div>
+        <div class="term-dot" style="background:#2F6F5E"></div>
+        <span class="term-title">build-queue — request #0412</span>
+      </div>
+      <div class="term-body" id="termBody"></div>
+    </div>
+    <div class="hero-note">↳ this is roughly what happens after you submit a request below</div>
+  </div>
+
+  <section>
+    <div class="section-label">02 — the process</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div>
+          <h3>You describe the problem</h3>
+          <p>The task you're doing by hand, the tool you're stitching together, the report you dread building. A few sentences is enough.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div>
+          <h3>I scope it and quote a price</h3>
+          <p>You'll hear back with what I'd build, how long it'll take, and a fixed price — before any work starts.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div>
+          <h3>It gets built</h3>
+          <p>I build the automation using AI-assisted development, so small-to-medium tools ship in days, not months.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div>
+          <h3>You approve it, I invoice</h3>
+          <p>You see it running on your real workflow first. Payment happens once you're happy it does the job.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">03 — the kind of thing that fits the queue</div>
+    <div class="examples">
+      <div class="ex-card"><span class="tag">ops</span><p>Auto-sort inbound emails into your CRM and flag the ones that need a reply today.</p></div>
+      <div class="ex-card"><span class="tag">reporting</span><p>Pull numbers from three spreadsheets into one weekly summary, sent automatically.</p></div>
+      <div class="ex-card"><span class="tag">sales</span><p>Turn a lead list into personalized outreach drafts, ready for you to review and send.</p></div>
+      <div class="ex-card"><span class="tag">internal tools</span><p>A small internal dashboard so your team stops asking you for the same numbers.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">04 — join the queue</div>
+    <div class="waitlist-card">
+      <h2>Get a slot in the build queue</h2>
+      <p class="desc">Requests are worked in order. Join now and I'll reach out to scope your build before opening it up more widely.</p>
+
+      <form id="waitlistForm">
+        <div class="row">
+          <input type="text" id="name" placeholder="Name" required />
+          <input type="email" id="email" placeholder="Email" required />
+        </div>
+        <textarea id="need" placeholder="What do you want automated? (a sentence or two is plenty)" required></textarea>
+        <button type="submit" id="submitBtn">Join the queue</button>
+        <div class="form-note">No spam. One email when it's your turn to be scoped.</div>
+        <div class="success" id="successMsg">✓ You're in. Request logged — I'll reach out by email.</div>
+      </form>
+      <div class="count-line" id="countLine"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>queue.build</span>
+    <span>built with AI, run by a human</span>
+  </footer>
+
+</div>
+
+<script>
+  // --- Terminal typing animation ---
+  const termBody = document.getElementById('termBody');
+  const lines = [
+    { text: '$ request received: "auto-sort my support inbox by urgency"', cls: 'term-prompt', delay: 28 },
+    { text: '# scoping build...', cls: 'term-comment', delay: 18 },
+    { text: '$ plan: classify → route → daily digest', cls: '', delay: 22 },
+    { text: '$ quote sent — fixed price, 3 day turnaround', cls: '', delay: 22 },
+    { text: '# building...', cls: 'term-comment', delay: 18 },
+    { text: '✓ shipped to client — running live', cls: 'term-ok', delay: 22 },
+    { text: '✓ invoice sent', cls: 'term-ok', delay: 22 },
+  ];
+
+  let lineIndex = 0;
+  function typeLine(){
+    if(lineIndex >= lines.length){
+      const cur = document.createElement('span');
+      cur.className='cursor';
+      termBody.appendChild(cur);
+      return;
+    }
+    const lineData = lines[lineIndex];
+    const p = document.createElement('p');
+    p.className = 'term-line ' + lineData.cls;
+    termBody.appendChild(p);
+    let charIndex = 0;
+    const interval = setInterval(()=>{
+      p.textContent = lineData.text.slice(0, charIndex+1);
+      charIndex++;
+      if(charIndex >= lineData.text.length){
+        clearInterval(interval);
+        lineIndex++;
+        setTimeout(typeLine, 220);
+      }
+    }, lineData.delay);
+  }
+  typeLine();
+
+  // --- Waitlist storage ---
+  const form = document.getElementById('waitlistForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const successMsg = document.getElementById('successMsg');
+  const countLine = document.getElementById('countLine');
+
+  async function refreshCount(){
+    try{
+      const list = await window.storage.list('waitlist:', true);
+      const n = list && list.keys ? list.keys.length : 0;
+      countLine.textContent = n > 0 ? `${n} ${n === 1 ? 'person has' : 'people have'} joined so far` : '';
+    }catch(e){
+      // storage not available or empty — fail quietly
+    }
+  }
+  refreshCount();
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Joining...';
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const need = document.getElementById('need').value.trim();
+    const entry = { name, email, need, joinedAt: new Date().toISOString() };
+
+    try{
+      const key = 'waitlist:' + Date.now() + '-' + email.toLowerCase();
+      const result = await window.storage.set(key, JSON.stringify(entry), true);
+      if(!result) throw new Error('storage failed');
+      form.style.display = 'none';
+      successMsg.classList.add('show');
+      refreshCount();
+    }catch(err){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Join the queue';
+      alert("Something went wrong saving your spot — mind trying again?");
+    }
+  });
+</script>
+
+</body>
+</html>
